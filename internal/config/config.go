@@ -70,8 +70,47 @@ func getEnvInt(key string, defaultValue int) int {
 }
 
 func (c *Config) Validate() error {
+	// 验证至少配置了一个 LLM API Key
 	if c.OpenAIKey == "" && c.ArkAPIKey == "" && c.AnthropicKey == "" {
-		return fmt.Errorf("at least one LLM API key must be configured")
+		return fmt.Errorf("at least one LLM API key must be configured (OPENAI_API_KEY, ARK_API_KEY, or ANTHROPIC_API_KEY)")
 	}
+
+	// 验证服务器端口
+	if c.ServerPort < 1024 || c.ServerPort > 65535 {
+		return fmt.Errorf("invalid server port: %d (must be between 1024 and 65535)", c.ServerPort)
+	}
+
+	// 验证日志级别
+	validLogLevels := map[string]bool{
+		"debug": true,
+		"info":  true,
+		"warn":  true,
+		"error": true,
+		"fatal": true,
+	}
+	if !validLogLevels[c.LogLevel] {
+		return fmt.Errorf("invalid log level: %s (must be one of: debug, info, warn, error, fatal)", c.LogLevel)
+	}
+
+	// 验证日志格式
+	if c.LogFormat != "json" && c.LogFormat != "text" {
+		return fmt.Errorf("invalid log format: %s (must be 'json' or 'text')", c.LogFormat)
+	}
+
+	// 验证向量维度
+	if c.VectorDim <= 0 || c.VectorDim > 10000 {
+		return fmt.Errorf("invalid vector dimension: %d (must be between 1 and 10000)", c.VectorDim)
+	}
+
+	// 验证向量存储类型
+	if c.VectorStoreType != "memory" && c.VectorStoreType != "persistent" {
+		return fmt.Errorf("invalid vector store type: %s (must be 'memory' or 'persistent')", c.VectorStoreType)
+	}
+
+	// 验证数据库路径
+	if c.DBPath == "" {
+		return fmt.Errorf("database path cannot be empty")
+	}
+
 	return nil
 }
