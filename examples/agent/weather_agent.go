@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"einoflow/internal/agent"
 	"einoflow/internal/tools"
@@ -15,8 +16,14 @@ func main() {
 	ctx := context.Background()
 
 	// 创建聊天模型
+	// 从环境变量读取 API Key
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		log.Fatal("OPENAI_API_KEY environment variable is required")
+	}
+
 	chatModel, err := openai.NewChatModel(ctx, &openai.ChatModelConfig{
-		APIKey: "sk-9AOKuh9ZAcsHP45IT0oCCIug2K8MIBY4bTzafFJ6F2DNaEPh",
+		APIKey: apiKey,
 		Model:  "gpt-4o-mini",
 	})
 	if err != nil {
