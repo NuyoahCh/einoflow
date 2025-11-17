@@ -1,102 +1,176 @@
-import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Compass, Layers, Zap } from 'lucide-react';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
-import MetricCard from '../components/insights/MetricCard';
-import WorkflowCard from '../components/workflows/WorkflowCard';
-import WorkflowFilter from '../components/workflows/WorkflowFilter';
+import { Link } from 'react-router-dom';
+import { MessageSquare, Bot, Database, GitBranch, ArrowRight, Sparkles } from 'lucide-react';
+import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { fetchWorkflows } from '../api/workflows';
-import type { Workflow } from '../types/workflow';
 
 const HomePage = () => {
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [statusFilter, setStatusFilter] = useState('all');
-
-  useEffect(() => {
-    fetchWorkflows().then(setWorkflows);
-  }, []);
-
-  const filteredWorkflows = useMemo(() => {
-    if (statusFilter === 'all') return workflows;
-    return workflows.filter((workflow) => workflow.status === statusFilter);
-  }, [statusFilter, workflows]);
+  const features = [
+    {
+      icon: MessageSquare,
+      title: 'AI 对话',
+      description: '与多个 AI 模型进行智能对话，支持流式输出和模型切换',
+      path: '/chat',
+      color: 'from-blue-500 to-cyan-500',
+      features: ['多模型支持', '流式响应', '对话历史'],
+    },
+    {
+      icon: Bot,
+      title: 'AI Agent',
+      description: '智能 Agent 帮助你完成复杂任务，包括写作、分析、代码生成',
+      path: '/agent',
+      color: 'from-purple-500 to-pink-500',
+      features: ['任务规划', '自动执行', '结果总结'],
+    },
+    {
+      icon: Database,
+      title: 'RAG 检索',
+      description: '索引你的文档，通过智能检索获取精准答案',
+      path: '/rag',
+      color: 'from-green-500 to-emerald-500',
+      features: ['文档索引', '语义检索', '来源追溯'],
+    },
+    {
+      icon: GitBranch,
+      title: 'Graph 编排',
+      description: '多步骤图编排处理复杂问题，自动分析和执行',
+      path: '/graph',
+      color: 'from-orange-500 to-red-500',
+      features: ['多步骤', '自动编排', '可视化流程'],
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <section className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-10 text-white shadow-2xl">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-slate-300">Intelligent orchestration</p>
-              <h2 className="mt-4 text-4xl font-semibold leading-tight">
-                Monitor, orchestrate and debug
-                <br />
-                every workflow in a single canvas.
-              </h2>
-              <p className="mt-4 max-w-2xl text-lg text-slate-200">
-                The Einoflow console gives you a live view of your automations with actionable insights, health signals
-                and collaborative tooling built with shadcn/ui and TailwindCSS.
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 px-6 py-20 text-white">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="h-4 w-4" />
+            <span className="uppercase tracking-wider text-slate-300">
+              Powered by Eino Framework
+            </span>
+          </div>
+          <h1 className="mt-6 text-5xl font-bold leading-tight lg:text-6xl">
+            智能 AI 编排平台
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              EinoFlow
+            </span>
+          </h1>
+          <p className="mt-6 max-w-2xl text-xl text-slate-300">
+            基于 Eino 框架构建的 AI 应用平台，提供对话、Agent、RAG、Graph 等完整功能
+          </p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link to="/chat">
+              <Button size="lg" className="shadow-xl">
+                开始使用
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <a
+              href="https://github.com/cloudwego/eino"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10">
+                了解 Eino
+              </Button>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold text-slate-900">核心功能</h2>
+            <p className="mt-3 text-slate-600">
+              探索 EinoFlow 提供的强大 AI 能力
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Link key={feature.path} to={feature.path}>
+                  <Card className="group h-full p-6 transition-all hover:shadow-xl">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${feature.color} shadow-lg`}
+                      >
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold text-slate-900">
+                          {feature.title}
+                        </h3>
+                        <p className="mt-2 text-sm text-slate-600">
+                          {feature.description}
+                        </p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {feature.features.map((f) => (
+                            <span
+                              key={f}
+                              className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                            >
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="mt-4 flex items-center gap-2 text-sm font-medium text-blue-600 transition-all group-hover:gap-3">
+                          立即体验
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Tech Stack Section */}
+      <section className="bg-slate-50 px-6 py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold text-slate-900">技术栈</h2>
+            <p className="mt-3 text-slate-600">
+              使用现代化技术构建
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="p-6 text-center">
+              <h3 className="font-semibold text-slate-900">后端</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Go + Eino Framework
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button size="lg" className="shadow-xl">
-                  Create workflow
-                </Button>
-                <Button variant="outline" size="lg" className="border-white/30 text-white">
-                  Explore blueprints
-                </Button>
-              </div>
-            </div>
-            <div className="grid w-full gap-4 rounded-2xl bg-white/10 p-6 backdrop-blur lg:w-[320px]">
-              <div>
-                <p className="text-sm text-slate-300">Active workflows</p>
-                <p className="text-5xl font-semibold">128</p>
-              </div>
-              <div className="space-y-3 text-sm text-slate-200">
-                <p className="flex items-center justify-between">
-                  Healthy <span className="font-semibold text-emerald-300">86%</span>
-                </p>
-                <p className="flex items-center justify-between">
-                  Degraded <span className="font-semibold text-amber-300">9%</span>
-                </p>
-                <p className="flex items-center justify-between">
-                  Failed <span className="font-semibold text-rose-300">5%</span>
-                </p>
-              </div>
-              <p className="text-xs text-slate-400">Realtime signals aggregated from the orchestration cluster.</p>
-            </div>
+            </Card>
+            <Card className="p-6 text-center">
+              <h3 className="font-semibold text-slate-900">前端</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                React 18 + TypeScript
+              </p>
+            </Card>
+            <Card className="p-6 text-center">
+              <h3 className="font-semibold text-slate-900">UI</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                TailwindCSS + shadcn/ui
+              </p>
+            </Card>
+            <Card className="p-6 text-center">
+              <h3 className="font-semibold text-slate-900">AI 模型</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                豆包 + OpenAI
+              </p>
+            </Card>
           </div>
-        </section>
-
-        <section className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Avg. throughput" value="842 / min" trend="+18% vs last week" icon={Zap} />
-          <MetricCard label="Workflow latency" value="320 ms" trend="-8% vs last deploy" icon={BarChart3} accent="bg-emerald-100 text-emerald-700" />
-          <MetricCard label="Active blueprints" value="42" trend="+5 curated" icon={Layers} accent="bg-indigo-100 text-indigo-700" />
-          <MetricCard label="Experiment paths" value="9" trend="New" icon={Compass} accent="bg-rose-100 text-rose-700" />
-        </section>
-
-        <section className="mt-12">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-2xl font-semibold text-slate-900">Workflow inventory</h3>
-              <p className="text-sm text-slate-500">Explore the orchestration graph with fast filters and live telemetry.</p>
-            </div>
-            <WorkflowFilter activeStatus={statusFilter} onStatusChange={setStatusFilter} />
-          </div>
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            {filteredWorkflows.map((workflow) => (
-              <WorkflowCard key={workflow.id} workflow={workflow} />
-            ))}
-            {filteredWorkflows.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-slate-500">
-                No workflows match this state. Adjust your filters or create a new workflow.
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-      <Footer />
+        </div>
+      </section>
     </div>
   );
 };

@@ -128,13 +128,26 @@ func (h *LLMHandler) ListModels(c *gin.Context) {
 		return
 	}
 
-	// 返回所有提供商的模型
-	allModels := make(map[string][]string)
-	for name, provider := range h.manager.GetAllProviders() {
-		allModels[name] = provider.ListModels()
+	// 返回所有提供商的模型，转换为前端期望的格式
+	type ModelInfo struct {
+		ID       string `json:"id"`
+		Provider string `json:"provider"`
+		Name     string `json:"name"`
+	}
+
+	var models []ModelInfo
+	for providerName, provider := range h.manager.GetAllProviders() {
+		modelIDs := provider.ListModels()
+		for _, modelID := range modelIDs {
+			models = append(models, ModelInfo{
+				ID:       modelID,
+				Provider: providerName,
+				Name:     modelID, // 可以后续优化为更友好的名称
+			})
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"providers": allModels,
+		"models": models,
 	})
 }
