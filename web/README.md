@@ -5,7 +5,7 @@ This folder contains the React 18 + TypeScript frontend built with Vite and Tail
 ## Getting started
 
 ```bash
-cd web/frontend
+cd web
 npm install
 npm run dev
 ```
