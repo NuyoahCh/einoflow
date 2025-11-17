@@ -7,6 +7,7 @@ import (
 
 	"einoflow/internal/llm"
 	"einoflow/internal/memory"
+	"einoflow/internal/middleware"
 	"einoflow/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -30,10 +31,30 @@ func NewLLMHandler(manager *llm.Manager) *LLMHandler {
 	}
 }
 
+// Chat godoc
+// @Summary      LLM 聊天接口
+// @Description  与 LLM 进行对话，支持多个模型提供商
+// @Tags         LLM
+// @Accept       json
+// @Produce      json
+// @Param        request  body      object  true  "聊天请求 {model: string, messages: array}"
+// @Success      200      {object}  object  "聊天响应"
+// @Failure      400      {object}  map[string]interface{}  "请求格式错误"
+// @Failure      500      {object}  map[string]interface{}  "服务器错误"
+// @Router       /llm/chat [post]
 func (h *LLMHandler) Chat(c *gin.Context) {
+	requestID := middleware.GetRequestID(c)
+
 	var req llm.ChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		logger.WithFields(map[string]interface{}{
+			"request_id": requestID,
+			"error":      err.Error(),
+		}).Warn("Invalid chat request")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":      "Invalid request format",
+			"request_id": requestID,
+		})
 		return
 	}
 
@@ -42,27 +63,63 @@ func (h *LLMHandler) Chat(c *gin.Context) {
 		originalCount := len(req.Messages)
 		req.Messages = h.contextManager.TruncateMessages(req.Messages)
 		if len(req.Messages) < originalCount {
-			logger.Info(fmt.Sprintf("Context truncated: %d -> %d messages, tokens: %d, available: %d",
-				originalCount, len(req.Messages),
-				h.contextManager.CountTokens(req.Messages),
-				h.contextManager.GetAvailableTokens(req.Messages)))
+			logger.WithFields(map[string]interface{}{
+				"request_id":       requestID,
+				"model":            req.Model,
+				"original_count":   originalCount,
+				"truncated_count":  len(req.Messages),
+				"tokens":           h.contextManager.CountTokens(req.Messages),
+				"available_tokens": h.contextManager.GetAvailableTokens(req.Messages),
+			}).Info("Context truncated")
 		}
 	}
 
 	resp, err := h.manager.Chat(c.Request.Context(), &req)
 	if err != nil {
-		logger.Error("Chat failed: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.WithFields(map[string]interface{}{
+			"request_id": requestID,
+			"model":      req.Model,
+			"error":      err.Error(),
+		}).Error("Chat request failed")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":      "Failed to process chat request",
+			"request_id": requestID,
+		})
 		return
 	}
+
+	logger.WithFields(map[string]interface{}{
+		"request_id": requestID,
+		"model":      req.Model,
+	}).Debug("Chat request completed")
 
 	c.JSON(http.StatusOK, resp)
 }
 
+// ChatStream godoc
+// @Summary      LLM 流式聊天接口
+// @Description  与 LLM 进行流式对话，实时返回响应
+// @Tags         LLM
+// @Accept       json
+// @Produce      text/event-stream
+// @Param        request  body      object  true  "聊天请求 {model: string, messages: array}"
+// @Success      200      {string}  string  "SSE 流式响应"
+// @Failure      400      {object}  map[string]interface{}  "请求格式错误"
+// @Failure      500      {object}  map[string]interface{}  "服务器错误"
+// @Router       /llm/chat/stream [post]
 func (h *LLMHandler) ChatStream(c *gin.Context) {
+	requestID := middleware.GetRequestID(c)
+
 	var req llm.ChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		logger.WithFields(map[string]interface{}{
+			"request_id": requestID,
+			"error":      err.Error(),
+		}).Warn("Invalid stream chat request")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":      "Invalid request format",
+			"request_id": requestID,
+		})
 		return
 	}
 
@@ -71,8 +128,12 @@ func (h *LLMHandler) ChatStream(c *gin.Context) {
 		originalCount := len(req.Messages)
 		req.Messages = h.contextManager.TruncateMessages(req.Messages)
 		if len(req.Messages) < originalCount {
-			logger.Info(fmt.Sprintf("Stream context truncated: %d -> %d messages",
-				originalCount, len(req.Messages)))
+			logger.WithFields(map[string]interface{}{
+				"request_id":      requestID,
+				"model":           req.Model,
+				"original_count":  originalCount,
+				"truncated_count": len(req.Messages),
+			}).Info("Stream context truncated")
 		}
 	}
 
@@ -87,8 +148,15 @@ func (h *LLMHandler) ChatStream(c *gin.Context) {
 	// 获取流式响应
 	stream, err := h.manager.ChatStream(c.Request.Context(), &req)
 	if err != nil {
-		logger.Error("ChatStream failed: " + err.Error())
-		c.SSEvent("error", gin.H{"error": err.Error()})
+		logger.WithFields(map[string]interface{}{
+			"request_id": requestID,
+			"model":      req.Model,
+			"error":      err.Error(),
+		}).Error("Stream chat request failed")
+		c.SSEvent("error", gin.H{
+			"error":      "Failed to process stream chat request",
+			"request_id": requestID,
+		})
 		return
 	}
 
@@ -111,6 +179,13 @@ func (h *LLMHandler) ChatStream(c *gin.Context) {
 	}
 }
 
+// ListModels godoc
+// @Summary      获取可用模型列表
+// @Description  获取所有已配置的 LLM 模型列表
+// @Tags         LLM
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}  "模型列表"
+// @Router       /llm/models [get]
 func (h *LLMHandler) ListModels(c *gin.Context) {
 	providerName := c.Query("provider")
 

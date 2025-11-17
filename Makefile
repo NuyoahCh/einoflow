@@ -54,3 +54,9 @@ test-stream:
 test-models:
 	@echo "获取模型列表..."
 	curl http://localhost:8080/api/v1/llm/models
+
+# 生成 Swagger 文档
+swagger:
+	@echo "生成 API 文档..."
+	swag init -g cmd/server/main.go --output docs
+	@echo "✅ 文档已生成，启动服务后访问 http://localhost:8080/swagger/index.html"
