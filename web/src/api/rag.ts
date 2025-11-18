@@ -50,3 +50,23 @@ export const clearRAG = async (): Promise<{ message: string }> => {
   const response = await client.delete<{ message: string }>('/v1/rag/clear');
   return response.data;
 };
+
+// 上传文件
+export interface RAGUploadResponse {
+  message: string;
+  filename: string;
+  document_count: number;
+  total_count: number;
+}
+
+export const uploadFile = async (file: File): Promise<RAGUploadResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await client.post<RAGUploadResponse>('/v1/rag/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};

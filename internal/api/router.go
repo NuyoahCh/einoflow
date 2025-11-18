@@ -62,6 +62,7 @@ func RegisterRoutes(router *gin.Engine, cfg *config.Config) {
 				cfg.ArkEmbeddingModel,
 			)
 			ragGroup.POST("/index", ragHandler.Index)
+			ragGroup.POST("/upload", ragHandler.UploadFile) // 文件上传
 			ragGroup.POST("/query", ragHandler.Query)
 			ragGroup.GET("/stats", ragHandler.GetStats) // 查看存储的文档
 			ragGroup.DELETE("/clear", ragHandler.Clear) // 清空文档

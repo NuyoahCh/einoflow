@@ -2,7 +2,9 @@ package api
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"einoflow/internal/embedding"
 	"einoflow/internal/rag"
@@ -74,6 +76,13 @@ type RAGQueryResponse struct {
 type RAGStatsResponse struct {
 	Count     int      `json:"count"`
 	Documents []string `json:"documents"`
+}
+
+type RAGUploadResponse struct {
+	Message       string `json:"message"`
+	Filename      string `json:"filename"`
+	DocumentCount int    `json:"document_count"`
+	TotalCount    int    `json:"total_count"`
 }
 
 func (h *RAGHandler) Index(c *gin.Context) {
@@ -300,4 +309,126 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// UploadFile 上传文件并索引
+func (h *RAGHandler) UploadFile(c *gin.Context) {
+	// 获取上传的文件
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no file uploaded"})
+		return
+	}
+
+	// 检查文件大小（限制 10MB）
+	if file.Size > 10*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file size exceeds 10MB limit"})
+		return
+	}
+
+	// 打开文件
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open file"})
+		return
+	}
+	defer src.Close()
+
+	// 读取文件内容
+	content, err := io.ReadAll(src)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read file"})
+		return
+	}
+
+	// 将文件内容转换为文本
+	text := string(content)
+
+	// 分块处理文本（每 500 字符一块）
+	chunks := h.splitText(text, 500)
+
+	if len(chunks) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file is empty or cannot be processed"})
+		return
+	}
+
+	// 创建文档和 embeddings
+	docs := make([]*schema.Document, len(chunks))
+	embeddings := make([][]float64, len(chunks))
+
+	for i, chunk := range chunks {
+		docs[i] = &schema.Document{
+			Content: chunk,
+			MetaData: map[string]any{
+				"index":    i,
+				"filename": file.Filename,
+				"source":   "upload",
+			},
+		}
+
+		// 使用真实 Embedding 或简单 Embedding
+		if h.useRealEmbedding {
+			embedding, err := h.embedder.EmbedText(c.Request.Context(), chunk)
+			if err != nil {
+				logger.Warn(fmt.Sprintf("Failed to embed text, using simple embedding: %v", err))
+				embeddings[i] = simpleEmbedding(chunk)
+			} else {
+				embeddings[i] = embedding
+			}
+		} else {
+			embeddings[i] = simpleEmbedding(chunk)
+		}
+	}
+
+	// 添加到向量存储
+	var totalCount int
+	if h.usePersistent {
+		err = h.persistentStore.Add(c.Request.Context(), docs, embeddings)
+		if err == nil {
+			totalCount, _ = h.persistentStore.Count()
+		}
+	} else {
+		err = h.vectorStore.Add(c.Request.Context(), docs, embeddings)
+		totalCount = h.vectorStore.Count()
+	}
+
+	if err != nil {
+		logger.Error("Failed to add documents: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to index file"})
+		return
+	}
+
+	logger.Info(fmt.Sprintf("Indexed file %s with %d chunks, total: %d", file.Filename, len(chunks), totalCount))
+
+	c.JSON(http.StatusOK, &RAGUploadResponse{
+		Message:       "File uploaded and indexed successfully",
+		Filename:      file.Filename,
+		DocumentCount: len(chunks),
+		TotalCount:    totalCount,
+	})
+}
+
+// splitText 分割文本为块
+func (h *RAGHandler) splitText(text string, chunkSize int) []string {
+	if len(text) == 0 {
+		return nil
+	}
+
+	var chunks []string
+	runes := []rune(text)
+
+	for i := 0; i < len(runes); i += chunkSize {
+		end := i + chunkSize
+		if end > len(runes) {
+			end = len(runes)
+		}
+
+		chunk := string(runes[i:end])
+		// 去除空白块
+		if len(strings.TrimSpace(chunk)) > 0 {
+			chunks = append(chunks, chunk)
+		}
+	}
+
+	return chunks
 }

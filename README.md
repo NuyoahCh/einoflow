@@ -4,11 +4,19 @@ EinoFlow 构建于字节跳动开源框架 [Eino](https://github.com/cloudwego/e
 
 ## ✨ 功能特性
 - **多模型 LLM**：内置豆包（默认）、OpenAI 等提供商，支持文本/多模态与流式输出。
-- **RAG 能力**：文档加载、分块、向量化与检索，默认内存向量库，便于扩展。
+- **RAG 能力**：文档加载、分块、向量化与检索，**支持文件上传**（TXT/MD），默认内存向量库，便于扩展。
 - **Chain & Graph 编排**：顺序链、并行链、多步骤 Graph，支持复杂流程拆解。
-- **Agent 系统**：ReAct Agent + Function Calling，可插入自定义工具，多轮对话。
+- **Agent 系统**：ReAct Agent + Function Calling，可插入自定义工具，**支持实时天气查询**，多轮对话。
 - **上下文与可观测性**：内置对话记忆、上下文截断、结构化日志与调用追踪。
-- **前端演示**：React + Vite UI，涵盖 Chat/Agent/RAG/Graph 页面，便于集成。
+- **前端演示**：React + Vite UI，涵盖 Chat/Agent/RAG/Graph 页面，**完整 Markdown 渲染**，便于集成。
+
+### 🆕 最新更新（v1.1.0）
+- 🌤️ **天气查询工具**：Agent 可查询实时天气信息，支持中国主要城市
+- 📁 **RAG 文件上传**：支持直接上传 TXT/MD 文件进行索引，最大 10MB
+- 🎨 **Markdown 渲染**：前端完整支持 Markdown 格式，包括代码高亮、表格、列表等
+- 🔒 **安全配置优化**：移除硬编码密钥，所有配置通过环境变量管理
+
+详细说明请查看 [新功能文档](docs/NEW_FEATURES.md) 和 [测试指南](docs/TESTING_GUIDE.md)。
 
 ## 🧭 仓库结构
 EinoFlow 是一个构建在字节跳动 [Eino](https://github.com/cloudwego/eino) 框架之上的完整 AI 应用平台，开箱即可体验 LLM 对话、Agent、RAG、Chain、Graph 等能力，并提供前后端示例、可观测性与配置管理，适合快速验证 AI 产品原型或作为二次开发的基础。
@@ -61,7 +69,14 @@ cd web && npm install && cd ..
 复制示例文件并填入至少一个可用的模型 Key（推荐豆包 `ARK_API_KEY`）：
 ```bash
 cp .env.example .env
+# 编辑 .env 文件，填入真实的 API Key
 ```
+
+**⚠️ 安全提示**：
+- `.env` 文件包含敏感信息，已被 `.gitignore` 保护，**不会提交到 Git**
+- 所有 API Key 都从 `.env` 读取，代码中**没有硬编码**的密钥
+- 详细安全配置请参考 [docs/SECURITY.md](docs/SECURITY.md)
+
 常用字段说明：
 - `ARK_API_KEY` / `ARK_BASE_URL`：豆包配置，默认模型 `doubao-seed-1-6-lite-251015`、`doubao-seed-1-6-vision-250815`。
 - `OPENAI_API_KEY` / `OPENAI_BASE_URL`：OpenAI 备用配置（`gpt-4o`、`gpt-4o-mini` 等）。

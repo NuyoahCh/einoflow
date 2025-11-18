@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import { chat, chatStream, listModels, type ChatMessage, type Model } from '../api/llm';
 
 const ChatPage = () => {
@@ -55,7 +56,9 @@ const ChatPage = () => {
 
     try {
       if (streaming) {
-        // 流式响应
+        // 流式响应 - 立即关闭 loading 状态，避免显示两个消息框
+        setLoading(false);
+        
         let assistantContent = '';
         const assistantMessage: ChatMessage = {
           role: 'assistant',
@@ -82,11 +85,10 @@ const ChatPage = () => {
             });
           },
           () => {
-            setLoading(false);
+            // 流式完成，无需额外操作
           },
           (error) => {
             console.error('Stream error:', error);
-            setLoading(false);
             setMessages((prev) => [
               ...prev.slice(0, -1),
               {
@@ -167,11 +169,11 @@ const ChatPage = () => {
   return (
     <div className="flex h-screen flex-col bg-slate-50">
       {/* Header */}
-      <div className="border-b bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
+      <div className="border-b bg-white px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">AI 对话</h1>
-            <p className="text-sm text-slate-500">与 AI 模型进行智能对话</p>
+            <h1 className="text-xl font-semibold text-slate-900">AI 对话</h1>
+            <p className="text-xs text-slate-500">与 AI 模型进行智能对话</p>
           </div>
           <div className="flex items-center gap-4">
             <select
@@ -218,8 +220,8 @@ const ChatPage = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="mx-auto max-w-4xl space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="mx-auto max-w-6xl space-y-4">
           {messages.length === 0 && (
             <Card className="p-10 text-center">
               <Bot className="mx-auto h-12 w-12 text-slate-400" />
@@ -249,7 +251,11 @@ const ChatPage = () => {
                     : 'bg-white'
                 }`}
               >
-                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                {message.role === 'user' ? (
+                  <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                ) : (
+                  <MarkdownRenderer content={message.content} className="text-sm" />
+                )}
               </Card>
               {message.role === 'user' && (
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-200">
@@ -275,15 +281,15 @@ const ChatPage = () => {
       </div>
 
       {/* Input */}
-      <div className="border-t bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-4xl gap-4">
+      <div className="border-t bg-white px-4 py-3">
+        <div className="mx-auto flex max-w-6xl gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="输入你的问题..."
-            className="flex-1 resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            rows={3}
+            className="flex-1 resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            rows={2}
             disabled={loading}
           />
           <Button

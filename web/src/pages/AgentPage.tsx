@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Play, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Play, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import { runAgent, type AgentResponse } from '../api/agent';
 
 const AgentPage = () => {
@@ -35,29 +36,29 @@ const AgentPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 px-6 py-10">
-      <div className="mx-auto max-w-4xl">
+    <div className="h-screen overflow-y-auto bg-slate-50 px-4 py-4">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-slate-900">AI Agent</h1>
-          <p className="mt-2 text-slate-600">
+        <div className="mb-4">
+          <h1 className="text-2xl font-semibold text-slate-900">AI Agent</h1>
+          <p className="mt-1 text-sm text-slate-600">
             智能 Agent 可以帮助你完成复杂任务，包括写作、分析、代码生成等
           </p>
         </div>
 
         {/* Input Card */}
-        <Card className="p-6">
-          <div className="space-y-4">
+        <Card className="p-4">
+          <div className="space-y-3">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
                 任务描述
               </label>
               <textarea
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
                 placeholder="描述你想要 Agent 完成的任务..."
-                className="w-full resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                rows={6}
+                className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                rows={4}
                 disabled={loading}
               />
             </div>
@@ -84,15 +85,15 @@ const AgentPage = () => {
         </Card>
 
         {/* Examples */}
-        <div className="mt-6">
-          <p className="mb-3 text-sm font-medium text-slate-700">示例任务：</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="mt-4">
+          <p className="mb-2 text-sm font-medium text-slate-700">示例任务：</p>
+          <div className="grid gap-2 sm:grid-cols-2">
             {examples.map((example, index) => (
               <button
                 key={index}
                 onClick={() => setTask(example)}
                 disabled={loading}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:opacity-50"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:opacity-50"
               >
                 {example}
               </button>
@@ -102,10 +103,10 @@ const AgentPage = () => {
 
         {/* Result */}
         {result && (
-          <Card className="mt-8 p-6">
-            <div className="mb-4 flex items-center gap-2">
+          <Card className="mt-4 p-4">
+            <div className="mb-3 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <h3 className="text-lg font-semibold text-slate-900">执行结果</h3>
+              <h3 className="text-base font-semibold text-slate-900">执行结果</h3>
               {result.execution_time && (
                 <span className="ml-auto text-sm text-slate-500">
                   耗时: {result.execution_time.toFixed(2)}s
@@ -113,8 +114,8 @@ const AgentPage = () => {
               )}
             </div>
             <div className="prose prose-slate max-w-none">
-              <div className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm">
-                {result.answer}
+              <div className="rounded-lg bg-slate-50 p-4">
+                <MarkdownRenderer content={result.answer} />
               </div>
             </div>
             {result.steps && result.steps.length > 0 && (

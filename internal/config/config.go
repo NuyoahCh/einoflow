@@ -42,7 +42,7 @@ func Load() (*Config, error) {
 		DBPath:            getEnv("DB_PATH", "./data/einoflow.db"),
 		OpenAIKey:         getEnv("OPENAI_API_KEY", ""),
 		OpenAIBaseURL:     getEnv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-		ArkAPIKey:         getEnv("ARK_API_KEY", "feabe6d9-8244-4e30-aff4-e7ad167a2ae9"),
+		ArkAPIKey:         getEnv("ARK_API_KEY", ""), // 从 .env 文件读取，不设置默认值
 		ArkBaseURL:        getEnv("ARK_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3"),
 		ArkEmbeddingModel: getEnv("ARK_EMBEDDING_MODEL", "doubao-embedding-large-text-250515"),
 		AnthropicKey:      getEnv("ANTHROPIC_API_KEY", ""),

@@ -33,29 +33,29 @@ const GraphPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 px-6 py-10">
-      <div className="mx-auto max-w-5xl">
+    <div className="h-screen overflow-y-auto bg-slate-50 px-4 py-4">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-slate-900">Graph 多步骤处理</h1>
-          <p className="mt-2 text-slate-600">
+        <div className="mb-4">
+          <h1 className="text-2xl font-semibold text-slate-900">Graph 多步骤处理</h1>
+          <p className="mt-1 text-sm text-slate-600">
             通过图编排实现复杂任务的多步骤分析和处理
           </p>
         </div>
 
         {/* Input Card */}
-        <Card className="p-6">
-          <div className="space-y-4">
+        <Card className="p-4">
+          <div className="space-y-3">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
                 复杂问题
               </label>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="输入需要多步骤分析的复杂问题..."
-                className="w-full resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                rows={6}
+                className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                rows={4}
                 disabled={loading}
               />
             </div>
@@ -83,15 +83,15 @@ const GraphPage = () => {
         </Card>
 
         {/* Examples */}
-        <div className="mt-6">
-          <p className="mb-3 text-sm font-medium text-slate-700">示例问题：</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="mt-4">
+          <p className="mb-2 text-sm font-medium text-slate-700">示例问题：</p>
+          <div className="grid gap-2 sm:grid-cols-2">
             {examples.map((example, index) => (
               <button
                 key={index}
                 onClick={() => setInput(example)}
                 disabled={loading}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:opacity-50"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:opacity-50"
               >
                 {example}
               </button>
@@ -101,11 +101,11 @@ const GraphPage = () => {
 
         {/* Result */}
         {result && (
-          <div className="mt-8 space-y-6">
+          <div className="mt-4 space-y-3">
             {/* Steps */}
             {result.steps && result.steps.length > 0 && (
-              <Card className="p-6">
-                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
+              <Card className="p-4">
+                <h3 className="mb-3 flex items-center gap-2 text-base font-semibold text-slate-900">
                   <GitBranch className="h-5 w-5 text-blue-600" />
                   执行步骤
                 </h3>
@@ -140,9 +140,9 @@ const GraphPage = () => {
             )}
 
             {/* Final Result */}
-            <Card className="p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">最终结果</h3>
+            <Card className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-slate-900">最终结果</h3>
                 {result.execution_time && (
                   <span className="text-sm text-slate-500">
                     耗时: {result.execution_time.toFixed(2)}s

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"einoflow/internal/agent"
+	"einoflow/internal/tools"
 	"einoflow/pkg/logger"
 
 	"github.com/cloudwego/eino/components/model"
@@ -11,12 +12,20 @@ import (
 )
 
 type AgentHandler struct {
-	chatModel model.ChatModel
+	chatModel    model.ChatModel
+	toolRegistry *tools.Registry
+	toolExecutor *tools.Executor
 }
 
 func NewAgentHandler(chatModel model.ChatModel) *AgentHandler {
+	// 创建工具注册表
+	toolRegistry := tools.NewRegistry("./data/einoflow.db", "./data/files")
+	toolExecutor := tools.NewExecutor(toolRegistry)
+
 	return &AgentHandler{
-		chatModel: chatModel,
+		chatModel:    chatModel,
+		toolRegistry: toolRegistry,
+		toolExecutor: toolExecutor,
 	}
 }
 
@@ -37,8 +46,8 @@ func (h *AgentHandler) Run(c *gin.Context) {
 		return
 	}
 
-	// 创建 Agent
-	reactAgent := agent.NewReActAgent(h.chatModel)
+	// 创建 Agent 并设置工具执行器
+	reactAgent := agent.NewReActAgent(h.chatModel).SetToolExecutor(h.toolExecutor)
 
 	// 执行任务
 	result, err := reactAgent.Run(c.Request.Context(), req.Task)
